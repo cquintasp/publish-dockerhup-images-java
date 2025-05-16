@@ -28,4 +28,4 @@ jobs:
 
     # 4. Subir la imagen al registro de GitHub Container Registry (GHCR)
     - name: Push Docker image to GHCR
-      run: docker push ghcr.io/cquintasp/java-docker-hello-worl:latest
+      run: docker push ghcr.io/cquintasp/java-docker-hello-world:latest
