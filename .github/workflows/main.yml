@@ -19,7 +19,7 @@ jobs:
       uses: docker/login-action@v2
       with:
         registry: ghcr.io
-        username: ${{ github.actor }}  # Usamos el nombre de usuario de GitHub
+        username: cquintasp  # Usamos el nombre de usuario de GitHub
         password: ${{ secrets.GH_PAT }}  # Usamos el token de GitHub preconfigurado
 
     # 3. Construir la imagen Docker
