@@ -18,7 +18,7 @@ jobs:
     # 3. Construir la imagen Docker
     - name: Build Docker image
       run: |
-       docker login --username cquintasp --password ${{DOCKER_PASSWORD }} ghcr.io
+       docker login --username cquintasp --password ${{secrets.DOCKER_PASSWORD }} ghcr.io
        docker build -t ${{ secrets.DOCKER_USERNAME }}/java-docker-hello-world:latest .
 
     # 4. Subir la imagen al registro Docker Hub
