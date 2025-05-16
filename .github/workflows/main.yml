@@ -19,7 +19,7 @@ jobs:
       uses: docker/login-action@v2
       with:
         username: cquintasp
-        password: ${{ secrets.DOCKER_PASSWORD }}
+        password: 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
 
     # 3. Construir la imagen Docker
     - name: Build Docker image
