@@ -14,16 +14,12 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    # 2. Login en Docker Hub
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v2
-      with:
-        username: cquintasp
-        password: ${{ secrets.DOCKER_PASSWORD}}
 
     # 3. Construir la imagen Docker
     - name: Build Docker image
-      run: docker build -t ${{ secrets.DOCKER_USERNAME }}/java-docker-hello-world:latest .
+      run: |
+       docker login --username cquintasp --password ${{DOCKER_PASSWORD }} ghcr.io
+       docker build -t ${{ secrets.DOCKER_USERNAME }}/java-docker-hello-world:latest .
 
     # 4. Subir la imagen al registro Docker Hub
     - name: Push Docker image
