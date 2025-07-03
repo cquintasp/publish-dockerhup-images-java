@@ -20,18 +20,16 @@ on:
 
   push:
     branches:
-      - main  # O la rama que prefieras
+      - main
 
 jobs:
   build-and-push-docker-image:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout el código del repositorio
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2. Determinar apps a desplegar
       - name: Determinar apps a desplegar
         id: set-apps
         run: |
@@ -52,18 +50,25 @@ jobs:
           echo "Aplicaciones a desplegar: $APPS_LIST"
           echo "apps=$APPS_LIST" >> "$GITHUB_OUTPUT"
 
-      # 3. Login en GitHub Container Registry (GHCR)
+          # Verificar si 'dashboard' está en la lista
+          if echo "$APPS_LIST" | grep -wq "dashboard"; then
+            echo "build_dashboard=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "build_dashboard=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Log in to GitHub Container Registry
+        if: steps.set-apps.outputs.build_dashboard == 'true'
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: cquintasp
           password: ${{ secrets.GH_PAT }}
 
-      # 4. Construir la imagen Docker
-      - name: Build Docker image
+      - name: Build Docker image for dashboard
+        if: steps.set-apps.outputs.build_dashboard == 'true'
         run: docker build --no-cache -t ghcr.io/cquintasp/java-docker-hello-world:latest .
 
-      # 5. Subir la imagen al GHCR
       - name: Push Docker image to GHCR
+        if: steps.set-apps.outputs.build_dashboard == 'true'
         run: docker push ghcr.io/cquintasp/java-docker-hello-world:latest
