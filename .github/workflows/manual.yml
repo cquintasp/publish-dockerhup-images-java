@@ -1,0 +1,67 @@
+name: manual
+
+on:
+ workflow_dispatch:
+    inputs:
+      deploymentMode:
+        description: 'Modo de despliegue'
+        required: true
+        type: choice
+        options:
+          - changed
+          - selected
+          - all
+        default: 'selected'
+      selectedApps:
+        description: 'Aplicaciones a desplegar (separadas por comas, solo para modo "selected")'
+        required: false
+        type: string
+        default: 'dashboard'
+  push:
+    branches:
+      - main  # O la rama que prefieras
+
+jobs:
+  build-and-push-docker-image:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Checkout el código del repositorio
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # 2. Login en GitHub Container Registry (GHCR)
+
+     
+    - name: Determinar apps a desplegar
+        id: set-apps
+        run: |
+          DEPLOYMENT_MODE="${{ github.event.inputs.deploymentMode }}"
+          SELECTED_APPS="${{ github.event.inputs.selectedApps }}"
+
+          if [[ "$DEPLOYMENT_MODE" == "selected" ]]; then
+            APPS_LIST=$(echo "$SELECTED_APPS" | tr ',' ' ')
+          elif [[ "$DEPLOYMENT_MODE" == "all" ]]; then
+            APPS_LIST=$(ls -1 apps | tr '\n' ' ')
+          elif [[ "$DEPLOYMENT_MODE" == "changed" ]]; then
+            APPS_LIST=$(git diff --name-only origin/main...HEAD | grep '^apps/' | cut -d '/' -f2 | sort -u | tr '\n' ' ')
+          else
+            echo "Modo de despliegue no reconocido: $DEPLOYMENT_MODE"
+            exit 1
+          fi
+
+          echo "Aplicaciones a desplegar: $APPS_LIST"
+          echo "apps=$APPS_LIST" >> "$GITHUB_OUTPUT"
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: cquintasp  # Usamos el nombre de usuario de GitHub
+        password: ${{ secrets.GH_PAT }}  # Usamos el token de GitHub preconfigurado
+    # 3. Construir la imagen Docker
+    - name: Build Docker image
+      run: docker build --no-cache -t ghcr.io/cquintasp/java-docker-hello-world:latest .
+
+    # 4. Subir la imagen al registro de GitHub Container Registry (GHCR)
+    - name: Push Docker image to GHCR
+      run: docker push ghcr.io/cquintasp/java-docker-hello-world:latest
